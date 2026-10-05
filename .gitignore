@@ -1,0 +1,9 @@
+from valence_probe.config import load_config
+
+
+def test_load_config() -> None:
+    config = load_config("configs/example.yaml")
+    assert config.name == "calm-versus-urgency"
+    assert config.strength == 1.8
+    assert any(item.text == "calm" for item in config.increase)
+    assert any(item.text == "panic" for item in config.decrease)

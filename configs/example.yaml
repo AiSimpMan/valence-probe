@@ -1,0 +1,48 @@
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from .config import load_config
+from .engine import build_direction_profile, recommend_prompt
+
+
+def _inspect_command(args: argparse.Namespace) -> None:
+    config = load_config(args.config)
+    profile = build_direction_profile(config)
+    print(f"Direction: {profile.name}")
+    print(f"Strength: {profile.strength}")
+    print(f"Increase: {profile.summary()['increase_terms']}")
+    print(f"Decrease: {profile.summary()['decrease_terms']}")
+    print(f"Neutral: {profile.neutral}")
+    print(f"Prompt hint: {recommend_prompt(profile)}")
+
+
+def _run_command(args: argparse.Namespace) -> None:
+    config = load_config(args.config)
+    profile = build_direction_profile(config)
+    payload = profile.summary()
+    print(f"Running direction: {config.name}")
+    print(f"Model: {config.model or 'unspecified'}")
+    print(f"Prompt: {config.prompt or 'no prompt provided'}")
+    print(f"Profile: {payload}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Neutral activation steering experiments")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    inspect_parser = subparsers.add_parser("inspect", help="Inspect a direction config")
+    inspect_parser.add_argument("--config", required=True, help="Path to YAML config")
+    inspect_parser.set_defaults(func=_inspect_command)
+
+    run_parser = subparsers.add_parser("run", help="Run a direction config")
+    run_parser.add_argument("--config", required=True, help="Path to YAML config")
+    run_parser.set_defaults(func=_run_command)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
